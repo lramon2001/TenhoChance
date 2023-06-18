@@ -1,5 +1,9 @@
 package com.lr.projects.tenhochance.utils.Scrapping;
 
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -7,18 +11,34 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.lr.projects.tenhochance.entity.Candidato;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
-import lombok.Data;
-
-@Data
+@Component
+@NoArgsConstructor
+@Getter
+@Setter
 public class ScrappingCandidato {
 
-    private String nomeCandidato;
-
-    private WebDriver driver;
+    private WebDriver webDriver;
 
     private ChromeOptions chromeOptions;
+
+    @Value("${url.cespe}")
+    private String urlCespe;
+
+    @PostConstruct
+    public void init() {
+        System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");
+        this.webDriver = new ChromeDriver(this.setChromeOptions());
+    }
 
     public ChromeOptions setChromeOptions() {
         ChromeOptions chromeOptions = new ChromeOptions();
@@ -33,27 +53,33 @@ public class ScrappingCandidato {
         return chromeOptions;
     }
 
-    public boolean consultaCandidato() {
+    public boolean consultaCandidato(String nomeCandidato, String numeroInscricao) {
 
-        this.driver.get("https://security.cebraspe.org.br/ConsultaOnline/UNB_23_ACESSOENEM/1983/7d6638f3-928d-46f4-b7bd-9ace99ad2b70/Consulta");
-
-        WebElement nomeConsultaInput = this.driver.findElement(By.id("NomeConsulta"));
-        Actions actions = new Actions(this.driver);
-        CharSequence charSequence = this.nomeCandidato;
-        actions.click(nomeConsultaInput).sendKeys(charSequence).sendKeys(Keys.RETURN).perform();
-
-        String html = this.driver.getPageSource();
+        this.webDriver.get(urlCespe);
+    
+        WebElement nomeConsulta = this.webDriver.findElement(By.id("NomeConsulta"));
+        Actions actions = new Actions(this.webDriver);
+        actions.click(nomeConsulta).sendKeys(nomeCandidato).sendKeys(Keys.RETURN).perform();
+    
+        String html = this.webDriver.getPageSource();
         if (html.contains("<h2 style=\"text-align:center; margin-top:50px\">Nenhum candidato encontrado</h2>")) {
             return false;
         } else {
-            return true;
+            List<WebElement> rows = this.webDriver.findElements(By.xpath("//table[@class='table table-vcenter card-table table-striped table-bordered']//tbody/tr"));
+            for (WebElement row : rows) {
+                List<WebElement> cols = row.findElements(By.tagName("td"));
+                if (cols.size() > 0) {
+                    String foundNomeCandidato = cols.get(1).getText().trim();
+                    String foundNumeroInscricao = cols.get(0).getText().trim();
+                    if (foundNomeCandidato.equals(nomeCandidato) && foundNumeroInscricao.equals(numeroInscricao)) {
+                        return true;
+                    }
+                }
+            }
         }
+    
+        return false;
     }
+    
 
-    public ScrappingCandidato (String nomeCandidato) {
-        System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");
-        this.nomeCandidato = nomeCandidato;
-        this.driver = new ChromeDriver(this.setChromeOptions());
-        
-    }
 }
