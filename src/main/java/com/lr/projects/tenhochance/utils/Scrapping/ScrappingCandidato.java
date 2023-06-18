@@ -14,7 +14,6 @@ import org.openqa.selenium.interactions.Actions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.lr.projects.tenhochance.entity.Candidato;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

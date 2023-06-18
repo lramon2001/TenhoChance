@@ -34,7 +34,7 @@ public class Candidato {
     private Integer classificacaoFinalUniversal;
 
     @Column(name = "classificacao_final_negros")
-    private Integer classificaoFinalNegros;
+    private Integer classificacaoFinalNegros;
 
     @Column(name = "classificacao_final_escola_publica_baixa_renda_ppi")
     private Integer classificacaoFinalEscolaPublicaBaixaRendaPpi;
