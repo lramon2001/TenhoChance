@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.lr.projects.tenhochance.entity.Candidato;
 import com.lr.projects.tenhochance.entity.Curso;
@@ -15,17 +18,28 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+@Transactional
 @Component
 public class DataInitializationConfig {
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final ResourceLoader resourceLoader;
     private final CursoRepository cursoRepository;
     private final CandidatoRepository candidatoRepository;
+   
 
     private static String caminhoCSV_CANDITADOS;
     private static String caminhoCSV_CURSOS;
@@ -33,7 +47,8 @@ public class DataInitializationConfig {
     private static Integer paginaInicial;
     private static Integer paginaFinal;
     private static String sequenciaApagada;
-    private Boolean cargaIncialCursoConcluida = false;
+    
+
     private final Integer tempoDeEspera = 100;
 
     @Value("${caminho.recurso.curso.csv}")
@@ -73,12 +88,14 @@ public class DataInitializationConfig {
     }
 
     @Autowired
-    public DataInitializationConfig(ResourceLoader resourceLoader, CursoRepository cursoRepository,CandidatoRepository candidatoRepository) {
+    public DataInitializationConfig(ResourceLoader resourceLoader, CursoRepository cursoRepository,
+            CandidatoRepository candidatoRepository) {
         this.resourceLoader = resourceLoader;
         this.cursoRepository = cursoRepository;
         this.candidatoRepository = candidatoRepository;
     }
 
+    @Transactional
     private void carregarCursos() throws IOException, CsvException {
         Resource resource = resourceLoader.getResource(caminhoRecursoCursoCSV);
         InputStreamReader inputStreamReader = new InputStreamReader(resource.getInputStream());
@@ -102,17 +119,26 @@ public class DataInitializationConfig {
         }
     }
 
-    private void carregarCandidatos() throws IOException, CsvException {
+    @Transactional
+    public void carregarCandidatos() throws IOException, CsvException {
         Resource resource = resourceLoader.getResource(caminhoRecursoCandidatoCSV);
         InputStreamReader inputStreamReader = new InputStreamReader(resource.getInputStream());
 
-        try (CSVReader csvReader = new CSVReader(inputStreamReader)) {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
+
+        transactionTemplate.execute(status-> {
+             try (CSVReader csvReader = new CSVReader(inputStreamReader)) {
             List<String[]> registros = csvReader.readAll();
             List<Candidato> candidatos = new ArrayList<>();
-            for (String[] registro : registros) {
-                if (registro.length >= 14) {
-                    Candidato candidato = new Candidato().builder().
-                            numeroInscricao(Long.parseLong(registro[0].replace(";", "").trim()))
+            int batchSize = 100;
+
+            for (int i = 0; i < registros.size(); i++) {
+                String[] registro = registros.get(i);
+
+                if (registro.length == 14) {
+                    Candidato candidato = new Candidato().builder()
+                            .numeroInscricao(Long.parseLong(registro[0].replace(";", "").trim()))
                             .nome(registro[1].trim())
                             .notaFinal(Double.parseDouble(registro[2].trim()))
                             .classificacaoFinalUniversal(this.converteInteiro(registro[3].trim()))
@@ -122,24 +148,51 @@ public class DataInitializationConfig {
                             .classificacaoFinalEscolaPublicaBaixaRenda(this.converteInteiro(registro[7].trim()))
                             .classificacaoFinalEscolaPublicaBaixaRendaPcd(this.converteInteiro(registro[8].trim()))
                             .classificacaoFinalEscolaPublicaNaoBaixaRendaPpi(this.converteInteiro(registro[9].trim()))
-                            .classificacaoFinalEscolaPublicaNaoBaixaRendaPpiPcd(this.converteInteiro(registro[10].trim()))
+                            .classificacaoFinalEscolaPublicaNaoBaixaRendaPpiPcd(
+                                    this.converteInteiro(registro[10].trim()))
                             .classificacaoFinalEscolaPublicaNaoBaixaRenda(this.converteInteiro(registro[11].trim()))
                             .classificacaoFinalEscolaPublicaNaoBaixaRendaPcd(this.converteInteiro(registro[12].trim()))
-                            .curso(cursoRepository.findById(Long.parseLong(registro[13].replace(";", "").trim())).get()).build();
-                            candidatos.add(candidato);
+                            .curso(cursoRepository.findById(Long.parseLong(registro[13].replace(";", "").trim())).get())
+                            .build();
+
+                    candidatos.add(candidato);
+                }
+
+                if (i > 0 && i % batchSize == 0) {
+                    candidatoRepository.saveAll(candidatos);
+                    candidatos.clear();
+                    entityManager.flush();
+                    entityManager.clear();
                 }
             }
 
-           candidatoRepository.saveAll(candidatos);
+            if (!candidatos.isEmpty()) {
+                candidatoRepository.saveAll(candidatos);
+                entityManager.flush();
+                entityManager.clear();
+            }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (CsvException e) {
+            e.printStackTrace();
+        }
+        return null;
+        });
+
+       
+    }
+
+    private Integer converteInteiro(String valor) {
+        try{
+        return "-".equals(valor) ? null : Integer.parseInt(valor);
+        }catch(NumberFormatException e){
+            return 0
+            ;
         }
     }
 
-    private Integer converteInteiro(String valor){
-         return "-".equals(valor) ? null : Integer.parseInt(valor);
-    }
     @PostConstruct
+    @Transactional
     public void init() throws IOException, CsvException {
         Thread threadGerarArquivos = new Thread(() -> {
             GeradorDeArquivos.executar(caminhoCSV_CANDITADOS, caminhoCSV_CURSOS, caminhoPDF, paginaInicial, paginaFinal,
@@ -154,30 +207,6 @@ public class DataInitializationConfig {
                 Thread.currentThread().interrupt();
             }
         }
-
-        /*
-         * Thread threadCarregarCursos = new Thread(() -> {
-         * try {
-         * carregarCursos();
-         * } catch (IOException e) {
-         * 
-         * e.printStackTrace();
-         * } catch (CsvException e) {
-         * e.printStackTrace();
-         * }
-         * });
-         * threadCarregarCursos.start();
-         * 
-         * while (!cargaIncialCursoConcluida) {
-         * try {
-         * Thread.sleep(tempoDeEspera);
-         * } catch (InterruptedException e) {
-         * Thread.currentThread().interrupt();
-         * }
-         * }
-         * 
-         * carregarCandidatos();
-         */
         carregarCursos();
         carregarCandidatos();
     }
