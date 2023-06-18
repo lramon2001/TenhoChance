@@ -1,12 +1,15 @@
 package com.lr.projects.tenhochance;
 
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import com.lr.projects.tenhochance.utils.GeradorDeArquivos.GeradorDeArquivos;
+
+import com.lr.projects.tenhochance.utils.ProcessadorDeArquivos.GeradorDeArquivos.GeradorDeArquivos;
+
 
 @SpringBootApplication
 public class TenhochanceApplication {
@@ -18,6 +21,8 @@ public class TenhochanceApplication {
     private static Integer paginaInicial;
     private static Integer paginaFinal;
     private static String  sequenciaApagada;
+
+    
 
     @Value("${caminho.pdf}")
     private void setCaminhoPDFNonStatic(String caminhoPDF) {

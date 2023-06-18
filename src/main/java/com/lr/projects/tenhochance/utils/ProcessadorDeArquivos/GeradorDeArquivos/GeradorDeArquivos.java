@@ -1,12 +1,12 @@
-package com.lr.projects.tenhochance.utils.GeradorDeArquivos;
+package com.lr.projects.tenhochance.utils.ProcessadorDeArquivos.GeradorDeArquivos;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.lr.projects.tenhochance.utils.ProcessadorDeArquivos.ProcessadorDePDF.ProcessadorDePDF;
+
 import java.io.FileWriter;
 import java.io.IOException;
-
-import com.lr.projects.tenhochance.utils.ProcessadorDePDF.ProcessadorDePDF;
 
 public class GeradorDeArquivos {
 

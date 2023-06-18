@@ -1,4 +1,4 @@
-package com.lr.projects.tenhochance.utils.ProcessadorDePDF;
+package com.lr.projects.tenhochance.utils.ProcessadorDeArquivos.ProcessadorDePDF;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,10 +6,11 @@ import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+
+import com.lr.projects.tenhochance.utils.ProcessadorDeArquivos.TratadorDeTexto.TratadorDeTexto;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.lr.projects.tenhochance.utils.TratadorDeTexto.TratadorDeTexto;
 
 public class ProcessadorDePDF {
 

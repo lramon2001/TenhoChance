@@ -1,4 +1,4 @@
-package com.lr.projects.tenhochance.utils.TratadorDeTexto;
+package com.lr.projects.tenhochance.utils.ProcessadorDeArquivos.TratadorDeTexto;
 
 import java.util.ArrayList;
 import java.util.List;
