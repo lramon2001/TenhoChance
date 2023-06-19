@@ -3,6 +3,7 @@ package com.lr.projects.tenhochance.utils.Classificador;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +20,8 @@ public class Classificador {
     private Buscador buscador;
 
     @Transactional
-    public void atualizarAprovacaoCandidatos(List<Candidato> candidatos) {
+    public void atualizarAprovacaoCandidatos(Page<Candidato> candidatosPage) {
+        List<Candidato> candidatos = candidatosPage.getContent();
         int ultimoAprovadoIndex = buscador.buscaBinariaCandidatoAprovado(candidatos);
 
         for (int i = 0; i <= ultimoAprovadoIndex; i++) {

@@ -14,7 +14,13 @@ public class Buscador {
     @Autowired
     private ScrappingCandidato scrappingCandidato;
 
+    @Autowired
+    private Ordenador ordenador;
+
     public int buscaBinariaCandidatoAprovado(List<Candidato> candidatos) {
+
+        ordenador.mergeSort(candidatos);
+        
         int esquerda = 0;
         int direita = candidatos.size() - 1;
         int meio;
