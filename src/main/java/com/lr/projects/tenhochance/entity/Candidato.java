@@ -64,4 +64,7 @@ public class Candidato {
     @JoinColumn(name = "curso_id", nullable = false)
     private Curso curso;
 
+     @Column(name = "aprovado")
+    private Boolean aprovado;
+
 }
