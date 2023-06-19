@@ -27,7 +27,7 @@ public class Ordenador {
 
         int i = 0, j = 0;
         while (i < esquerda.size() && j < direita.size()) {
-            if (esquerda.get(i).getNotaFinal() <= direita.get(j).getNotaFinal()) {
+            if (esquerda.get(i).getClassificacaoFinalUniversal() <= direita.get(j).getClassificacaoFinalUniversal()) {
                 resultado.add(esquerda.get(i++));
             } else {
                 resultado.add(direita.get(j++));

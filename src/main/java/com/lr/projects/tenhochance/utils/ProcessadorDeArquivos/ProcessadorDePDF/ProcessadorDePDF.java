@@ -27,8 +27,7 @@ public class ProcessadorDePDF {
             logger.info("Leitura do PDF finalizada.");
             return pdfTextStripper.getText(document);
         } catch (IOException e) {
-            logger.error("Erro ao carregar PDF.");
-            logger.error(e.getMessage());
+            logger.error("Erro ao carregar PDF: " + e.getMessage());
             return null;
         }
     }

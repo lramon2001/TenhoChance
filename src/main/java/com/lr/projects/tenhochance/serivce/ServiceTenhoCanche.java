@@ -1,14 +1,15 @@
 package com.lr.projects.tenhochance.serivce;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.lr.projects.tenhochance.entity.Candidato;
 import com.lr.projects.tenhochance.repository.CandidatoRepository;
 import com.lr.projects.tenhochance.utils.Classificador.Classificador;
+import com.lr.projects.tenhochance.utils.Classificador.Ordenador;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 @Service
@@ -24,46 +25,70 @@ public class ServiceTenhoCanche {
         this.classificador.atualizarAprovacaoCandidatos(candidatos);
     }
 
-    public Page<Candidato> buscaAprovadosSistemaUniversal(Pageable pageable, Long cursoId) {
-        Page<Candidato> pageCandidatos = this.candidatoRepository.buscaCandidatosSistemaUniversal(cursoId,pageable);
+    private Page<Candidato> atualizarAprovacaoCandidatosCotistas(Page<Candidato> candidatos, Pageable pageable) {
+        classificador.atualizaAprovacaoCandidatosCotistasPorPagina(candidatos);
+        return new PageImpl<>(Ordenador.mergeSort(candidatos.getContent()), pageable,
+                candidatos.getTotalElements());
+    }
+
+    public Page<Candidato> buscaCandidatosSistemaUniversal(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository.buscaCandidatosSistemaUniversal(cursoId, pageable);
         this.atualizarAprovacaoCandidatos(pageCandidatos);
-        return pageCandidatos;
+        return new PageImpl<>(Ordenador.mergeSort(pageCandidatos.getContent()), pageable,
+                pageCandidatos.getTotalElements());
     }
 
     public Page<Candidato> buscaCandidatosSistemaNegros(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaNegros(cursoId,pageable);
+        Page<Candidato> pageCandidatos = this.candidatoRepository.buscaCandidatosSistemaNegros(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
     public Page<Candidato> buscaCandidatosSistemaEscolaPublicaBaixaRendaPpi(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaBaixaRendaPpi(cursoId,pageable);
+        Page<Candidato> pageCandidatos = this.candidatoRepository
+                .buscaCandidatosSistemaEscolaPublicaBaixaRendaPpi(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
-    Page<Candidato> buscaCandidatosSistemaEscolaPublicaBaixaRendaPpiPcd(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaBaixaRendaPpiPcd(cursoId,pageable);
+    public Page<Candidato> buscaCandidatosSistemaEscolaPublicaBaixaRendaPpiPcd(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository
+                .buscaCandidatosSistemaEscolaPublicaBaixaRendaPpiPcd(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
-    Page<Candidato> buscaCandidatosSistemaEscolaPublicaBaixaRenda(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaBaixaRenda(cursoId,pageable);
+    public Page<Candidato> buscaCandidatosSistemaEscolaPublicaBaixaRenda(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaBaixaRenda(cursoId,
+                pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
-    Page<Candidato> buscaCandidatosSistemaEscolaPublicaBaixaRendaPcd(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaBaixaRendaPcd(cursoId,pageable);
+    public Page<Candidato> buscaCandidatosSistemaEscolaPublicaBaixaRendaPcd(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository
+                .buscaCandidatosSistemaEscolaPublicaBaixaRendaPcd(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
-    Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpi(Pageable pageable, Long cursoId){
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpi(cursoId,pageable);
+    public Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpi(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository
+                .buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpi(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
-    Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpiPcd(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpiPcd(cursoId,pageable);
+    public Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpiPcd(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository
+                .buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPpiPcd(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
-    Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRenda(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaNaoBaixaRenda(cursoId,pageable);
+    public Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRenda(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository
+                .buscaCandidatosSistemaEscolaPublicaNaoBaixaRenda(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
-    Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPcd(Pageable pageable, Long cursoId) {
-        return this.candidatoRepository.buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPcd(cursoId,pageable);
+    public Page<Candidato> buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPcd(Pageable pageable, Long cursoId) {
+        Page<Candidato> pageCandidatos = this.candidatoRepository
+                .buscaCandidatosSistemaEscolaPublicaNaoBaixaRendaPcd(cursoId, pageable);
+        return this.atualizarAprovacaoCandidatosCotistas(pageCandidatos, pageable);
     }
 
 }

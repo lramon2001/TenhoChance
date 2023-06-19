@@ -27,8 +27,7 @@ public class GeradorDeArquivos {
             logger.info("Arquivo gerado com sucesso.");
             fileWriter.close();
         } catch (IOException e) {
-            logger.error("Erro ao gerar arquivo.");
-            logger.error(e.getMessage());
+            logger.error("Erro ao gerar arquivo: " + e.getMessage());
         }
 
     }
